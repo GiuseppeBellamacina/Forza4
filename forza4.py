@@ -206,7 +206,6 @@ def diffMedia(): # strategia difensiva
     if extMax == 0: # concentra gli attacchi su di un'area specifica
         extMin = randint(0,3) # setta i valori solo una volta
         extMax = extMin + 3
-    
     # attacco
     for j in range(7): # si tratta di un controllo in verticale
         if mat[0][j] != vuoto: continue
@@ -245,7 +244,6 @@ def diffMedia(): # strategia difensiva
                         if mat[i+1][j-1] != vuoto and mat[i][j-1] == vuoto:
                             return j-1
             else: count = 0
-    
     # difesa
     for j in range(7): # si tratta di un controllo in verticale
         if mat[0][j] != vuoto: continue
@@ -284,8 +282,63 @@ def diffMedia(): # strategia difensiva
                         if mat[i+1][j-1] != vuoto and mat[i][j-1] == vuoto:
                             return j-1
             else: count = 0
-    
     return randint(extMin, extMax) # colpisce nell'area
+
+# controlla cosa accade dopo un'ipotetica mossa
+def virtualCheck(x):
+    # creo una copia della matrice chiamata vmat
+    vmat = [[0 for i in range(7)] for j in range(6)]
+    for i in range(6):
+        for j in range(7):
+            vmat[i][j] = mat[i][j]
+    for i in range(5,0,-1): # inserisce il disco nella prima cella vuota
+        if vmat[i][x] == vuoto:
+            vmat[i][x] = avv # vmat[i][x] e' un gradino?
+            vmat[i-1][x] = gioc
+            break
+            
+    # parte orizzontale
+    for i in range(6):
+        count = 0
+        for j in range(7):
+            if vmat[i][j] == gioc:
+                count = count + 1
+                if count >= 4:
+                    return False
+            else:
+                count = 0
+    
+    # parte verticale           
+    for j in range(7):
+        count = 0
+        for i in range(6):
+            if vmat[i][j] == gioc:
+                count = count + 1
+                if count >= 4:
+                    return False
+            else:
+                count = 0
+    
+    # parte diagonale disc
+    for i in range(3):
+        for j in range(4):
+            count = 0
+            for z in range(4):
+                if vmat[i+z][j+z] == gioc:
+                    count = count + 1
+            if count >= 4:
+                return False
+    
+    # parte diagonale asc
+    for i in range(3,6):
+        for j in range(4):
+            count = 0
+            for z in range(4):
+                if vmat[i-z][j+z] == gioc:
+                    count = count + 1
+            if count >= 4:
+                return False
+    return True # l'avversario non fa il gradino al giocatore
 
 def diffDifficile(): # strategia mista-offensiva
     global extMin, extMax
@@ -641,10 +694,10 @@ def diffDifficile(): # strategia mista-offensiva
                     if j == 5 and count < 3: continue # se il contrattacco è inutile
                     if i==5 and j<6:
                         if mat[i][j+1] == vuoto:
-                            return j+1
+                            if virtualCheck(j+1): return j+1
                     elif i<5 and j<6:
                         if mat[i+1][j+1] != vuoto and mat[i][j+1] == vuoto:
-                            return j+1
+                            if virtualCheck(j+1): return j+1
             else: count = 0
     
     for i in range(6): # controllo in orizzontale dx-sx
@@ -656,10 +709,10 @@ def diffDifficile(): # strategia mista-offensiva
                     if j == 1 and count < 3: continue # se il contrattacco è inutile
                     if i==5 and j>0:
                         if mat[i][j-1] == vuoto:
-                            return j-1
+                            if virtualCheck(j-1): return j-1
                     elif i<5 and j>0:
                         if mat[i+1][j-1] != vuoto and mat[i][j-1] == vuoto:
-                            return j-1
+                            if virtualCheck(j-1): return j-1
             else: count = 0
     
     for j in range(7): # si tratta di un controllo in verticale
@@ -669,7 +722,7 @@ def diffDifficile(): # strategia mista-offensiva
             if mat[i][j] == gioc:
                 count = count + 1
                 if count >= 2  and i>=0 and mat[i-1][j] == vuoto:
-                    return j
+                    if virtualCheck(j): return j
             else: count = 0
     
     for i in range(3): # controllo in diagonale disc sx-dx
@@ -680,9 +733,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i+z+1 == 5 and mat[i+z+1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                         elif i+z+1 < 5 and mat[i+z+2][j+z+1] != vuoto and mat[i+z+1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                 else: count = 0
                 
     for i in range(3): # controllo in diagonale disc dx-sx
@@ -693,9 +746,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i+z+1 == 5 and mat[i+z+1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                         elif i+z+1 < 5 and mat[i+z+2][j-z-1] != vuoto and mat[i+z+1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                 else: count = 0
                 
     for i in range(3,6): # controllo in diagonale asc sx-dx
@@ -706,9 +759,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i-z-1 == 0 and mat[i-z-1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                         elif i-z-1 > 0 and mat[i-z][j+z+1] != vuoto and mat[i-z-1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                 else: count = 0
     
     for i in range(3,6): # controllo in diagonale asc dx-sx
@@ -719,9 +772,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i-z-1 == 0 and mat[i-z-1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                         elif i-z-1 > 0 and mat[i-z][j-z-1] != vuoto and mat[i-z-1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                 else: count = 0
     
     # attacco normale
@@ -732,7 +785,7 @@ def diffDifficile(): # strategia mista-offensiva
             if mat[i][j] == avv:
                 count = count + 1
                 if count >= 2 and i>=0 and mat[i-1][j] == vuoto:
-                    return j
+                    if virtualCheck(j): return j
             else: count = 0
     
     for i in range(6): # controllo in orizzontale sx-dx
@@ -743,10 +796,10 @@ def diffDifficile(): # strategia mista-offensiva
                 if count >= 2:
                     if i==5 and j<6:
                         if mat[i][j+1] == vuoto:
-                            return j+1
+                            if virtualCheck(j+1): return j+1
                     elif i<5 and j<6:
                         if mat[i+1][j+1] != vuoto and mat[i][j+1] == vuoto:
-                            return j+1
+                            if virtualCheck(j+1): return j+1
             else: count = 0
     
     for i in range(6): # controllo in orizzontale dx-sx
@@ -757,10 +810,10 @@ def diffDifficile(): # strategia mista-offensiva
                 if count >= 2:
                     if i==5 and j>0:
                         if mat[i][j-1] == vuoto:
-                            return j-1
+                            if virtualCheck(j-1): return j-1
                     elif i<5 and j>0:
                         if mat[i+1][j-1] != vuoto and mat[i][j-1] == vuoto:
-                            return j-1
+                            if virtualCheck(j-1): return j-1
             else: count = 0
     
     for i in range(3): # controllo in diagonale disc sx-dx
@@ -771,9 +824,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i+z+1 == 5 and mat[i+z+1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                         elif i+z+1 < 5 and mat[i+z+2][j+z+1] != vuoto and mat[i+z+1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                 else: count = 0
                 
     for i in range(3): # controllo in diagonale disc dx-sx
@@ -784,9 +837,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i+z+1 == 5 and mat[i+z+1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                         elif i+z+1 < 5 and mat[i+z+2][j-z-1] != vuoto and mat[i+z+1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                 else: count = 0
                 
     for i in range(3,6): # controllo in diagonale asc sx-dx
@@ -797,9 +850,9 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i-z-1 == 0 and mat[i-z-1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                         elif i-z-1 > 0 and mat[i-z][j+z+1] != vuoto and mat[i-z-1][j+z+1] == vuoto:
-                            return j+z+1
+                            if virtualCheck(j+z+1): return j+z+1
                 else: count = 0
     
     for i in range(3,6): # controllo in diagonale asc dx-sx
@@ -810,11 +863,15 @@ def diffDifficile(): # strategia mista-offensiva
                     count = count + 1
                     if count >= 2:
                         if i-z-1 == 0 and mat[i-z-1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                         elif i-z-1 > 0 and mat[i-z][j-z-1] != vuoto and mat[i-z-1][j-z-1] == vuoto:
-                            return j-z-1
+                            if virtualCheck(j-z-1): return j-z-1
                 else: count = 0
-    return randint(extMin, extMax) # colpisce nell'area
+    
+    num = randint(extMin, extMax) #colpisce una colonna casuale
+    while virtualCheck(num) == False:
+        num = randint(extMin, extMax)
+    return num
 
 # IA avversaria pensata su 3 difficolta'
 def insertAvv(difficulty):
