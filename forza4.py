@@ -30,7 +30,7 @@ def display():
             print(mat[i][j], end=" ")
         print("|")
     print("   0   1   2   3   4   5   6\n")
-
+    
 # funzione per il giocatore
 def insertGioc():
     display()
